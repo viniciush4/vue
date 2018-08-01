@@ -7,14 +7,7 @@
 </head>
 <body>
     <div id="app">
-        
-
-        <div id="nav">
-            <router-link v-if="authenticated" to="/login" v-on:click.native="logout()" replace>Logout</router-link>
-        </div>
-        <router-view @authenticated="setAuthenticated" />
-
-        <!--<v-app id="inspire">
+        <v-app id="inspire">
             <v-navigation-drawer :clipped="$vuetify.breakpoint.lgAndUp" v-model="drawer" fixed app >
                 <v-list dense>
                     <template v-for="item in items" >
@@ -70,6 +63,14 @@
                 <v-btn icon>
                     <v-icon>person</v-icon>
                 </v-btn>
+                <!--<v-btn icon large>
+                    <v-avatar size="32px" tile>
+                        <img
+                        src="https://cdn.vuetifyjs.com/images/logos/logo.svg"
+                        alt="Vuetify"
+                        >
+                    </v-avatar>
+                </v-btn>-->
             </v-toolbar>
             <v-content>
                 <v-container fluid fill-height>   
@@ -80,7 +81,7 @@
                     </v-layout>
                 </v-container>
             </v-content>
-            <v-btn
+            <!--<v-btn
                 fab
                 bottom
                 right
@@ -153,37 +154,9 @@
                     <v-btn flat @click="dialog = false">Save</v-btn>
                 </v-card-actions>
                 </v-card>
-            </v-dialog>
-        </v-app>-->
-    </div>
-
-    <template id="login">
-        <v-app id="inspire">
-            <v-content>
-                <v-container fluid fill-height>
-                    <v-layout align-center justify-center>
-                    <v-flex xs12 sm8 md4>
-                        <v-card class="elevation-12">
-                        <v-toolbar dark color="primary">
-                            <v-toolbar-title>Login form</v-toolbar-title>
-                        </v-toolbar>
-                        <v-card-text>
-                            <v-form>
-                            <v-text-field prepend-icon="person" name="username" v-model="input.username" label="Username" type="text"></v-text-field>
-                            <v-text-field id="password" v-model="input.password" prepend-icon="lock" name="password" label="Password" type="password"></v-text-field>
-                            </v-form>
-                        </v-card-text>
-                        <v-card-actions>
-                            <v-spacer></v-spacer>
-                            <v-btn color="primary" v-on:click="login()" >Login</v-btn>
-                        </v-card-actions>
-                        </v-card>
-                    </v-flex>
-                    </v-layout>
-                </v-container>
-            </v-content>
+            </v-dialog>-->
         </v-app>
-    </template>
+    </div>
 
     <template id="usuarios">
         <v-card width="100%">
@@ -281,31 +254,6 @@
         const ENDPOINT_CRUD_USUARIO = 'http://agnc.kinghost.net/api-controle-estoque/public/api/usuario/1';
         const ENDPOINT_LISTAR_CATEGORIAS = 'http://agnc.kinghost.net/api-controle-estoque/public/api/categorias';
         const ENDPOINT_CRUD_CATEGORIA = 'http://agnc.kinghost.net/api-controle-estoque/public/api/categoria/1';
-
-        var Login = Vue.component('login', {
-            template: '#login',
-            data: () => ({
-                drawer: null,
-                input: {
-                    username: "",
-                    password: ""
-                }
-            }),
-            methods: {
-                login() {
-                    if(this.input.username != "" && this.input.password != "") {
-                        if(this.input.username == this.$parent.mockAccount.username && this.input.password == this.$parent.mockAccount.password) {
-                            this.$emit("authenticated", true);
-                            this.$router.replace({ name: "usuarios/" });
-                        } else {
-                            console.log("The username and / or password is incorrect");
-                        }
-                    } else {
-                        console.log("A username and password must be present");
-                    }
-                }
-            }
-        })
 
         var Usuarios = Vue.component('usuarios', {
             template: '#usuarios',
@@ -444,7 +392,7 @@
                 dialog (val) {
                     val || this.close()
                 }
-            }
+            },
         })
 
         var CategoriasProdutos = Vue.component('categorias-produtos', {
@@ -469,18 +417,7 @@
 
         var router = new VueRouter({
             routes: [
-                {
-                    path: '/',
-                    redirect: {
-                        name: "login"
-                    }
-                },
-                {
-                    path: "/login",
-                    name: "login",
-                    component: Login
-                },
-                { path: '/usuarios', name: 'usuarios', component: Usuarios },
+                { path: '/usuarios', component: Usuarios },
                 { path: '/categorias-produtos', component: CategoriasProdutos },
                 { path: '/produtos', component: Produtos },
                 { path: '/estoque', component: Estoque },
@@ -493,11 +430,6 @@
             el: '#app',
             router,
             data: {
-                authenticated: false,
-                mockAccount: {
-                    username: "user",
-                    password: "pass"
-                },
                 dialog: false,
                 drawer: null,
                 items: [
@@ -516,19 +448,6 @@
                         ]
                     }
                 ]
-            },
-            mounted() {
-                if(!this.authenticated) {
-                    this.$router.replace({ name: "login" });
-                }
-            },
-            methods: {
-                setAuthenticated(status) {
-                    this.authenticated = status;
-                },
-                logout() {
-                    this.authenticated = false;
-                }
             }
         })
 

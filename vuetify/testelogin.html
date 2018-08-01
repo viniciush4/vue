@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+</head>
+<body>
+        <div id="app">
+            <p>
+                <router-link to="/about">About</router-link>
+                <router-link to="/dashboard">Dashboard</router-link>
+            </p>
+            <router-view></router-view>
+        </div>
+
+
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+        <script>
+            var About = { template: '<h1>About</div>' };
+            var Dashboard = { template: '<h1>Dashboard</h1>' };
+
+            var Auth = {
+            loggedIn: false,
+            login: function() { this.loggedIn = true },
+            logout: function() { this.loggedIn = false }  
+            };
+
+            var Login = {
+            template: '<input type="submit" value="Login" v-on:click="login">',
+            methods: {
+                login: function() {
+                Auth.login();
+                router.push(this.$route.query.redirect);
+                }
+            }
+            };
+
+            var routes = [
+            { path: '/about', component: About },
+            { path: '/dashboard', component: Dashboard, meta: { requiresAuth: true }},
+            { path: '/login', component: Login }
+            ];
+
+            var router = new VueRouter({
+            routes
+            });
+
+            router.beforeEach((to, from, next) => {
+            if (to.matched.some(record => record.meta.requiresAuth) && !Auth.loggedIn) {
+                next({ path: '/login', query: { redirect: to.fullPath }});
+            } else {
+                next();
+            }
+            });
+
+            var app = new Vue({
+            el: '#app',
+            router
+            });
+        </script>
+</body>
+</html>
