@@ -7,7 +7,7 @@
 </head>
 <body>
     <div id="app">
-        <router-view v-on:authenticated="login"></router-view>
+        <router-view></router-view>
     </div>
 
     <template id="login">
@@ -92,9 +92,17 @@
                 </v-toolbar-title>
                 <v-text-field flat solo-inverted hide-details prepend-inner-icon="search" label="Localizar" class="hidden-sm-and-down" ></v-text-field>
                 <v-spacer></v-spacer>
-                <v-btn icon>
-                    <v-icon>person</v-icon>
-                </v-btn>
+                <v-menu bottom left>
+                    <v-btn icon slot="activator" dark icon>
+                        <v-icon>person</v-icon>
+                    </v-btn>
+        
+                    <v-list>
+                        <v-list-tile v-on:click="logout()">
+                            <v-list-tile-title>Sair</v-list-tile-title>
+                        </v-list-tile>
+                    </v-list>
+                </v-menu>
             </v-toolbar>
             <v-content>
                 <v-container fluid fill-height>   
@@ -124,33 +132,30 @@
                         
                                 <v-card-text>
                                     <v-container grid-list-md>
-                                        <v-layout row wrap>
-                                            <v-flex xs12>
-                                                <v-text-field prepend-icon="person" v-model="editedItem.nome" label="Nome"></v-text-field>
-                                            </v-flex>
-                                        </v-layout>
-                                        <v-layout row wrap>
-                                            <v-flex xs12>
-                                                <v-text-field v-model="editedItem.login" label="Login"></v-text-field>
-                                            </v-flex>
-                                        </v-layout>
-                                        <v-layout row wrap>
-                                            <v-flex xs12>
-                                                <v-text-field v-model="editedItem.senha" label="Senha"></v-text-field>
-                                            </v-flex>
-                                        </v-layout>
-                                        <v-layout row wrap>
-                                            <v-flex xs12>
-                                                <v-select v-model="editedItem.tipo" :items="tiposUsuarios" label="Tipo"></v-select>
-                                            </v-flex>
-                                        </v-layout>
+                                        <v-form ref="form" v-model="valid" lazy-validation>
+                                            <v-layout row wrap>
+                                                <v-flex xs12>
+                                                    <v-text-field prepend-icon="person" v-model="editedItem.nome" label="Nome" :rules="rules.nome"></v-text-field>
+                                                </v-flex>
+                                            </v-layout>
+                                            <v-layout row wrap>
+                                                <v-flex xs12>
+                                                    <v-text-field v-model="editedItem.login" label="Login" :rules="rules.login"></v-text-field>
+                                                </v-flex>
+                                            </v-layout>
+                                            <v-layout row wrap>
+                                                <v-flex xs12>
+                                                    <v-select v-model="editedItem.tipo" :items="tiposUsuarios" label="Tipo" :rules="rules.tipo"></v-select>
+                                                </v-flex>
+                                            </v-layout>
+                                        </v-form>
                                     </v-container>
                                 </v-card-text>
                         
                                 <v-card-actions>
                                     <v-spacer></v-spacer>
                                     <v-btn color="blue darken-1" flat @click.native="close">Cancelar</v-btn>
-                                    <v-btn color="blue darken-1" flat @click.native="save">Salvar</v-btn>
+                                    <v-btn color="blue darken-1" flat @click.native="save" :disabled="!valid">Salvar</v-btn>
                                 </v-card-actions>
                             </v-card>
                         </v-dialog>
@@ -221,9 +226,9 @@
     <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
     <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
-    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
     <script>
 
+        const ENDPOINT_LOGIN = 'http://agnc.kinghost.net/api-controle-estoque/public/api/auth/login';
         const ENDPOINT_LISTAR_USUARIOS = 'http://agnc.kinghost.net/api-controle-estoque/public/api/usuarios';
         const ENDPOINT_CRUD_USUARIO = 'http://agnc.kinghost.net/api-controle-estoque/public/api/usuario/1';
         const ENDPOINT_LISTAR_CATEGORIAS = 'http://agnc.kinghost.net/api-controle-estoque/public/api/categorias';
@@ -232,7 +237,6 @@
         var Login = Vue.component('login', {
             template: '#login',
             data: () => ({
-                drawer: null,
                 input: {
                     login: "",
                     senha: ""
@@ -240,16 +244,29 @@
             }),
             methods: {
                 login() {
-                    if(this.input.login != "" && this.input.senha != "") {
-                        if(this.input.login == "vinicius" && this.input.senha == "senha") {
-                            this.$emit("authenticated");
-                            this.$router.replace({ path: "/usuarios" });
-                        } else {
-                            console.log("O login e/ou a senha estão incorretos");
-                        }
-                    } else {
-                        console.log("O login e a senha precisam ser preenchidos");
+                    // Realiza chamada ao backend para conseguir token
+                    //this.getToken();
+                    localStorage.setItem('token', 'testetoken');
+
+                    // Caso consiga o token, guarda-o e redireciona para usuarios
+                    if(localStorage.getItem('token') != ""){
+                        this.$router.replace({ path: "/usuarios" });
                     }
+                },
+                getToken() {
+                    this.$http.post(ENDPOINT_LOGIN, {login: this.input.login, senha: this.input.senha})
+                        .then(
+                            function (response) {
+                                localStorage.setItem('token', response.body.token);
+                            }, 
+                            function (error) {
+                                console.log(error);
+                                localStorage.removeItem('token');
+                            }
+                        )
+                        .finally(function () {
+                        }
+                    );
                 }
             }
         })
@@ -278,13 +295,31 @@
                     ]
                 }
             },
+            methods: {
+                logout() {
+                    localStorage.removeItem('token');
+                    this.$router.replace({ path: "/login" });
+                }
+            }
         })
 
         var Usuarios = Vue.component('usuarios', {
             template: '#usuarios',
             data () {
                 return {
+                    valid: false,
                     dialog: false,
+                    rules: {
+                        nome: [
+                            v => !!v || 'O nome não pode ficar em branco'
+                        ],
+                        login: [
+                            v => !!v || 'O login não pode ficar em branco'
+                        ],
+                        tipo: [
+                            v => !!v || 'O tipo não pode ficar em branco'
+                        ]
+                    },
                     headers: [
                         {
                             text: 'Nome', 
@@ -323,12 +358,14 @@
                     search: '',
                     editedIndex: -1,
                     editedItem: {
+                        id: '',
                         nome: '',
                         login: '',
                         senha: '',
                         tipo: ''
                     },
                     defaultItem: {
+                        id: '',
                         nome: '',
                         login: '',
                         senha: '',
@@ -360,7 +397,28 @@
 
                 deleteItem (item) {
                     const index = this.usuarios.indexOf(item)
-                    confirm('Deseja realmente excluir este item?') && this.usuarios.splice(index, 1)
+                    if(confirm('Deseja realmente excluir este item?')){
+                        this.$http.delete(ENDPOINT_CRUD_USUARIO, JSON.stringify(this.editedItem))
+                            .then(
+                                function (response) {
+                                    if(response.body){
+                                        this.usuarios.splice(index, 1)
+                                    }
+                                    else {
+                                        alert('Houve um erro ao salvar os dados')
+                                    }
+                                }, 
+                                function (error) {
+                                    console.log(error)
+                                    alert('Houve um erro ao se conectar ao servidor')
+                                    
+                                }
+                            )
+                            .finally(function () {
+                                this.close()
+                            }
+                        );
+                    }
                 },
 
                 close () {
@@ -368,41 +426,57 @@
                     setTimeout(() => {
                         this.editedItem = Object.assign({}, this.defaultItem)
                         this.editedIndex = -1
+                        this.$refs.form.reset()
                     }, 300)
                 },
 
                 save () {
-                    if (this.editedIndex > -1) {
-                        Object.assign(this.usuarios[this.editedIndex], this.editedItem);
-
-                    } else {
-                        /*$.post(ENDPOINT_CRUD_USUARIO, JSON.stringify(this.editedItem), function() {
-                            alert( "success" );
-                        })
-                        .done(function() {
-                            alert( "second success" );
-                        })
-                        .fail(function() {
-                            alert( "error" );
-                        })
-                        .always(function() {
-                            alert( "finished" );
-                        });*/
-                        this.$http.post('http://agnc.kinghost.net/api-controle-estoque/public/api/usuario/1', JSON.stringify(this.editedItem))
-                            .then(
-                                function (response) {
-                                    this.usuarios.push(response.body);
-                                }, 
-                                function (error) {
-                                    console.log(error);
+                    if (this.$refs.form.validate()) {
+                        if (this.editedIndex > -1) {
+                            this.$http.put(ENDPOINT_CRUD_USUARIO, JSON.stringify(this.editedItem))
+                                .then(
+                                    function (response) {
+                                        if(response.body){
+                                            Object.assign(this.usuarios[this.editedIndex], this.editedItem);
+                                        }
+                                        else {
+                                            alert('Houve um erro ao salvar os dados')
+                                        }
+                                    }, 
+                                    function (error) {
+                                        console.log(error)
+                                        alert('Houve um erro ao se conectar ao servidor')
+                                        
+                                    }
+                                )
+                                .finally(function () {
+                                    this.close()
                                 }
-                            )
-                            .finally(function () {
-                            }
-                        );
-                        //this.usuarios.push(this.editedItem)
+                            );
+                        } 
+                        else {
+                            this.$http.post(ENDPOINT_CRUD_USUARIO, JSON.stringify(this.editedItem))
+                                .then(
+                                    function (response) {
+                                        if(response.body){
+                                            this.usuarios.push(response.body)
+                                        }
+                                        else {
+                                            alert('Houve um erro ao salvar os dados')
+                                        }
+                                    }, 
+                                    function (error) {
+                                        console.log(error)
+                                        alert('Houve um erro ao se conectar ao servidor')
+                                        
+                                    }
+                                )
+                                .finally(function () {
+                                    this.close()
+                                }
+                            );
+                        }
                     }
-                    this.close()
                 }
             },
             created() {
@@ -417,6 +491,9 @@
                 dialog (val) {
                     val || this.close()
                 }
+            },
+            beforeEnter: (to, from, next) => {
+                alert('enter')
             }
         })
 
@@ -456,31 +533,28 @@
         var vm = new Vue({ 
             el: '#app',
             router,
-            data: {
-                logado: false
-            },
-            methods: {
-                userIsLogged(){
-                    return this.logado;
-                },
-                login: function(){
-                    alert("hello");
-                    this.logado = true;
-                }
-            }
         });
 
         router.beforeEach((to, from, next) => {
-            //alert(vm.userIsLogged());
-            //alert(JSON.stringify(from.path));
-            if(vm.userIsLogged()){
-                next();
-            }
-            else if(!(to.path == '/login')){
-                next('/');
-            }
-            else{
-                next(false);
+
+            // Se o path solicitado é o login
+            if(to.path == '/login') {
+
+                // Concede acesso
+                next()
+            } 
+            else {
+                // Se o token existe no localStorage
+                if(localStorage.getItem('token')) {
+
+                    // Verifica se o token é válido
+
+                    // Concede acesso
+                    next()
+                }
+
+                // Nega o acesso
+                next(false)
             }
         })
 
