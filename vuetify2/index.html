@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+</head>
+<body>
+    <div id="app">
+        <router-view v-on:authenticated="login"></router-view>
+    </div>
+
+    <template id="login">
+        <v-app id="inspire">
+            <v-content>
+                <v-container fluid fill-height>
+                    <v-layout align-center justify-center>
+                    <v-flex xs12 sm8 md4>
+                        <v-card class="elevation-12">
+                        <v-toolbar dark color="primary">
+                            <v-toolbar-title>Estoque Bacana</v-toolbar-title>
+                        </v-toolbar>
+                        <v-card-text>
+                            <v-form>
+                            <v-text-field prepend-icon="person" name="login" v-model="input.login" label="Login" type="text"></v-text-field>
+                            <v-text-field prepend-icon="lock" name="senha" v-model="input.senha" label="Senha" type="password"></v-text-field>
+                            </v-form>
+                        </v-card-text>
+                        <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn color="primary" v-on:click="login()" >Login</v-btn>
+                        </v-card-actions>
+                        </v-card>
+                    </v-flex>
+                    </v-layout>
+                </v-container>
+            </v-content>
+        </v-app>
+    </template>
+
+    <template id="backend">
+        <v-app id="inspire">
+            <v-navigation-drawer :clipped="$vuetify.breakpoint.lgAndUp" v-model="drawer" fixed app >
+                <v-list dense>
+                    <template v-for="item in items" >
+                        <v-layout v-if="item.heading" :key="item.heading" row align-center >
+                            <v-flex xs6>
+                                <v-subheader v-if="item.heading">
+                                    {{ item.heading }}
+                                </v-subheader>
+                            </v-flex>
+                            <v-flex xs6 class="text-xs-center">
+                                <a href="#!" class="body-2 black--text">EDIT</a>
+                            </v-flex>
+                        </v-layout>
+                        <v-list-group  v-else-if="item.children" v-model="item.model" :key="item.text" :prepend-icon="item.model ? item.icon : item['icon-alt']" append-icon="" >   
+                            <v-list-tile slot="activator" >
+                                <v-list-tile-content>
+                                <v-list-tile-title>
+                                    {{ item.text }}
+                                </v-list-tile-title>
+                                </v-list-tile-content>
+                            </v-list-tile>
+                            <v-list-tile v-for="(child, i) in item.children" :key="i" @click="" router :to="child.action">
+                                <v-list-tile-action v-if="child.icon">
+                                    <v-icon>{{ child.icon }}</v-icon>
+                                </v-list-tile-action>
+                                <v-list-tile-content>
+                                    <v-list-tile-title>
+                                        {{ child.text }}
+                                    </v-list-tile-title>
+                                </v-list-tile-content>
+                            </v-list-tile>
+                        </v-list-group>
+                        <v-list-tile v-else :key="item.text" @click="" router :to="item.action">
+                            <v-list-tile-action>
+                                <v-icon>{{ item.icon }}</v-icon>
+                            </v-list-tile-action>
+                            <v-list-tile-content>
+                                <v-list-tile-title>
+                                    {{ item.text }}
+                                </v-list-tile-title>
+                            </v-list-tile-content>
+                        </v-list-tile>
+                    </template>
+                </v-list>
+            </v-navigation-drawer>
+            <v-toolbar :clipped-left="$vuetify.breakpoint.lgAndUp" color="blue darken-3" dark app fixed >
+                <v-toolbar-title style="width: 300px" class="ml-0 pl-3">
+                    <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+                    <span class="hidden-sm-and-down">Estoque Bacana</span>
+                </v-toolbar-title>
+                <v-text-field flat solo-inverted hide-details prepend-inner-icon="search" label="Localizar" class="hidden-sm-and-down" ></v-text-field>
+                <v-spacer></v-spacer>
+                <v-btn icon>
+                    <v-icon>person</v-icon>
+                </v-btn>
+            </v-toolbar>
+            <v-content>
+                <v-container fluid fill-height>   
+                    <v-layout row wrap>
+                        <v-flex xs12>
+                            <slot name="content"></slot>
+                        </v-flex>
+                    </v-layout>
+                </v-container>
+            </v-content>
+        </v-app>
+    </template>
+
+    <template id="usuarios">
+        <backend>
+            <template slot="content">
+                <v-card width="100%">
+                    <v-toolbar flat color="white">
+                        <v-toolbar-title>Usuários</v-toolbar-title>
+                        <v-spacer></v-spacer>
+                        <v-dialog v-model="dialog" max-width="500px">
+                            <v-btn slot="activator" color="primary" dark class="mb-2">Novo Usuário</v-btn>
+                            <v-card>
+                                <v-card-title>
+                                    <span class="headline">{{ formTitle }}</span>
+                                </v-card-title>
+                        
+                                <v-card-text>
+                                    <v-container grid-list-md>
+                                        <v-layout row wrap>
+                                            <v-flex xs12>
+                                                <v-text-field prepend-icon="person" v-model="editedItem.nome" label="Nome"></v-text-field>
+                                            </v-flex>
+                                        </v-layout>
+                                        <v-layout row wrap>
+                                            <v-flex xs12>
+                                                <v-text-field v-model="editedItem.login" label="Login"></v-text-field>
+                                            </v-flex>
+                                        </v-layout>
+                                        <v-layout row wrap>
+                                            <v-flex xs12>
+                                                <v-text-field v-model="editedItem.senha" label="Senha"></v-text-field>
+                                            </v-flex>
+                                        </v-layout>
+                                        <v-layout row wrap>
+                                            <v-flex xs12>
+                                                <v-select v-model="editedItem.tipo" :items="tiposUsuarios" label="Tipo"></v-select>
+                                            </v-flex>
+                                        </v-layout>
+                                    </v-container>
+                                </v-card-text>
+                        
+                                <v-card-actions>
+                                    <v-spacer></v-spacer>
+                                    <v-btn color="blue darken-1" flat @click.native="close">Cancelar</v-btn>
+                                    <v-btn color="blue darken-1" flat @click.native="save">Salvar</v-btn>
+                                </v-card-actions>
+                            </v-card>
+                        </v-dialog>
+                    </v-toolbar>
+                    <v-toolbar flat color="white">
+                        <v-text-field v-model="search" append-icon="search" label="Localizar" single-line hide-details></v-text-field>
+                    </v-toolbar>
+                    <v-data-table :headers="headers" :items="usuarios" hide-actions class="elevation-1" :search="search" >
+                        <template slot="items" slot-scope="props">
+                            <td>{{ props.item.nome }}</td>
+                            <td class="text-xs-right">{{ props.item.login }}</td>
+                            <td class="text-xs-right">{{ props.item.tipo }}</td>
+                            <td class="justify-end layout">
+                                <v-icon small class="mr-2" @click="editItem(props.item)" >edit</v-icon>
+                                <v-icon small @click="deleteItem(props.item)">delete</v-icon>
+                            </td>
+                        </template>
+                        <template slot="no-data">
+                            Nenhum dado disponível
+                        </template>
+                    </v-data-table>
+                </v-card>
+            </template>
+        </backend>
+    </template>
+
+    <template id="categorias-produtos">
+        <backend>
+            <template slot="content">
+                <div>Categorias de Produtos</div>
+            </template>
+        </backend>
+    </template>
+
+    <template id="produtos">
+        <backend>
+            <template slot="content">
+                <div>Produtos</div>
+            </template>
+        </backend>
+    </template>
+
+    <template id="estoque">
+        <backend>
+            <template slot="content">
+                <div>Estoque</div>
+            </template>
+        </backend>
+    </template>
+
+    <template id="balanco-geral-estoque">
+        <backend>
+            <template slot="content">
+                <div>Balanço Geral do Estoque</div>
+            </template>
+        </backend>
+    </template>
+
+    <template id="balanco-individual-por-produto">
+        <backend>
+            <template slot="content">
+                <div>Balanço Individual por Produto</div>
+            </template>
+        </backend>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+    <script>
+
+        const ENDPOINT_LISTAR_USUARIOS = 'http://agnc.kinghost.net/api-controle-estoque/public/api/usuarios';
+        const ENDPOINT_CRUD_USUARIO = 'http://agnc.kinghost.net/api-controle-estoque/public/api/usuario/1';
+        const ENDPOINT_LISTAR_CATEGORIAS = 'http://agnc.kinghost.net/api-controle-estoque/public/api/categorias';
+        const ENDPOINT_CRUD_CATEGORIA = 'http://agnc.kinghost.net/api-controle-estoque/public/api/categoria/1';
+
+        var Login = Vue.component('login', {
+            template: '#login',
+            data: () => ({
+                drawer: null,
+                input: {
+                    login: "",
+                    senha: ""
+                }
+            }),
+            methods: {
+                login() {
+                    if(this.input.login != "" && this.input.senha != "") {
+                        if(this.input.login == "vinicius" && this.input.senha == "senha") {
+                            this.$emit("authenticated");
+                            this.$router.replace({ path: "/usuarios" });
+                        } else {
+                            console.log("O login e/ou a senha estão incorretos");
+                        }
+                    } else {
+                        console.log("O login e a senha precisam ser preenchidos");
+                    }
+                }
+            }
+        })
+
+        var Backend = Vue.component('backend', {
+            template: '#backend',
+            data () {
+                return {
+                    dialog: false,
+                    drawer: null,
+                    items: [
+                        { icon: 'group', text: 'Usuários', action: '/usuarios' },
+                        { icon: 'category', text: 'Categoria de Produtos', action: '/categorias-produtos' },
+                        { icon: 'change_history', text: 'Produtos', action: '/produtos' },
+                        { icon: 'assessment', text: 'Estoque', action: '/estoque' },
+                        {
+                            icon: 'keyboard_arrow_up',
+                            'icon-alt': 'keyboard_arrow_down',
+                            text: 'Relatórios',
+                            model: false,
+                            children: [
+                                { text: 'Balanço Geral do Estoque', action: '/balanco-geral-estoque' },
+                                { text: 'Balanço Individual por Produto', action: '/balanco-individual-por-produto' }
+                            ]
+                        }
+                    ]
+                }
+            },
+        })
+
+        var Usuarios = Vue.component('usuarios', {
+            template: '#usuarios',
+            data () {
+                return {
+                    dialog: false,
+                    headers: [
+                        {
+                            text: 'Nome', 
+                            value: 'nome',
+                            align: 'left', 
+                            sortable: true
+                        },
+                        { 
+                            text: 'Login', 
+                            value: 'login',
+                            class : 'text-xs-right'
+                        },
+                        { 
+                            text: 'Tipo', 
+                            value: 'tipo',
+                            class : 'text-xs-right'
+                        },
+                        { 
+                            text: 'Opções', 
+                            value: 'id',
+                            class : 'text-xs-right',
+                            sortable: false 
+                        }
+                    ],
+                    usuarios: [],
+                    tiposUsuarios: [
+                        {
+                            text: 'Administrador',
+                            value: 'administrador'
+                        },
+                        {
+                            text: 'Estoquista',
+                            value: 'estoquista'
+                        }
+                    ],
+                    search: '',
+                    editedIndex: -1,
+                    editedItem: {
+                        nome: '',
+                        login: '',
+                        senha: '',
+                        tipo: ''
+                    },
+                    defaultItem: {
+                        nome: '',
+                        login: '',
+                        senha: '',
+                        tipo: ''
+                    }
+                }
+            },
+            methods : {
+                getUsuarios() {
+                    this.$http.get(ENDPOINT_LISTAR_USUARIOS)
+                        .then(
+                            function (response) {
+                                this.usuarios = response.body;
+                            }, 
+                            function (error) {
+                                console.log(error);
+                            }
+                        )
+                        .finally(function () {
+                        }
+                    );
+                },
+
+                editItem (item) {
+                    this.editedIndex = this.usuarios.indexOf(item)
+                    this.editedItem = Object.assign({}, item)
+                    this.dialog = true
+                },
+
+                deleteItem (item) {
+                    const index = this.usuarios.indexOf(item)
+                    confirm('Deseja realmente excluir este item?') && this.usuarios.splice(index, 1)
+                },
+
+                close () {
+                    this.dialog = false
+                    setTimeout(() => {
+                        this.editedItem = Object.assign({}, this.defaultItem)
+                        this.editedIndex = -1
+                    }, 300)
+                },
+
+                save () {
+                    if (this.editedIndex > -1) {
+                        Object.assign(this.usuarios[this.editedIndex], this.editedItem);
+
+                    } else {
+                        /*$.post(ENDPOINT_CRUD_USUARIO, JSON.stringify(this.editedItem), function() {
+                            alert( "success" );
+                        })
+                        .done(function() {
+                            alert( "second success" );
+                        })
+                        .fail(function() {
+                            alert( "error" );
+                        })
+                        .always(function() {
+                            alert( "finished" );
+                        });*/
+                        this.$http.post('http://agnc.kinghost.net/api-controle-estoque/public/api/usuario/1', JSON.stringify(this.editedItem))
+                            .then(
+                                function (response) {
+                                    this.usuarios.push(response.body);
+                                }, 
+                                function (error) {
+                                    console.log(error);
+                                }
+                            )
+                            .finally(function () {
+                            }
+                        );
+                        //this.usuarios.push(this.editedItem)
+                    }
+                    this.close()
+                }
+            },
+            created() {
+                this.getUsuarios();
+            },
+            computed: {
+                formTitle () {
+                    return this.editedIndex === -1 ? 'Novo Usuário' : 'Editar Usuário'
+                }
+            },
+            watch: {
+                dialog (val) {
+                    val || this.close()
+                }
+            }
+        })
+
+        var CategoriasProdutos = Vue.component('categorias-produtos', {
+            template: '#categorias-produtos'
+        })
+
+        var Produtos = Vue.component('produtos', {
+            template: '#produtos'
+        })
+
+        var Estoque = Vue.component('estoque', {
+            template: '#estoque'
+        })
+
+        var BalancoGeralEstoque = Vue.component('balanco-geral-estoque', {
+            template: '#balanco-geral-estoque'
+        })
+
+        var BalancoIndividualPorProduto = Vue.component('balanco-individual-por-produto', {
+            template: '#balanco-individual-por-produto'
+        })
+
+        var router = new VueRouter({
+            routes: [
+                { path: '/', redirect: { path: "/login" }},
+                { path: "/login", component: Login },
+                { path: '/usuarios', component: Usuarios },
+                { path: '/categorias-produtos', component: CategoriasProdutos },
+                { path: '/produtos', component: Produtos },
+                { path: '/estoque', component: Estoque },
+                { path: '/balanco-geral-estoque', component: BalancoGeralEstoque },
+                { path: '/balanco-individual-por-produto', component: BalancoIndividualPorProduto },
+            ]
+        });
+
+        var vm = new Vue({ 
+            el: '#app',
+            router,
+            data: {
+                logado: false
+            },
+            methods: {
+                userIsLogged(){
+                    return this.logado;
+                },
+                login: function(){
+                    alert("hello");
+                    this.logado = true;
+                }
+            }
+        });
+
+        router.beforeEach((to, from, next) => {
+            //alert(vm.userIsLogged());
+            //alert(JSON.stringify(from.path));
+            if(vm.userIsLogged()){
+                next();
+            }
+            else if(!(to.path == '/login')){
+                next('/');
+            }
+            else{
+                next(false);
+            }
+        })
+
+    </script>
+</body>
+</html>
