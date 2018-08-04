@@ -226,13 +226,26 @@
     <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
     <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script>
+
 
         const ENDPOINT_LOGIN = 'http://agnc.kinghost.net/api-controle-estoque/public/api/auth/login';
         const ENDPOINT_LISTAR_USUARIOS = 'http://agnc.kinghost.net/api-controle-estoque/public/api/usuarios';
-        const ENDPOINT_CRUD_USUARIO = 'http://agnc.kinghost.net/api-controle-estoque/public/api/usuario/1';
+        const ENDPOINT_CRUD_USUARIO = 'http://agnc.kinghost.net/api-controle-estoque/public/api/usuario';
         const ENDPOINT_LISTAR_CATEGORIAS = 'http://agnc.kinghost.net/api-controle-estoque/public/api/categorias';
-        const ENDPOINT_CRUD_CATEGORIA = 'http://agnc.kinghost.net/api-controle-estoque/public/api/categoria/1';
+        const ENDPOINT_CRUD_CATEGORIA = 'http://agnc.kinghost.net/api-controle-estoque/public/api/categoria';
+
+        function getUsuarios(callback) {
+            axios.get(ENDPOINT_LISTAR_USUARIOS)
+                .then(function (response) {
+                    callback(response.data)
+                })
+                .catch(function (error) {
+                    console.log(error)
+                }
+            );
+        }
 
         var Login = Vue.component('login', {
             template: '#login',
@@ -245,7 +258,7 @@
             methods: {
                 login() {
                     // Realiza chamada ao backend para conseguir token
-                    //this.getToken();
+                    //this.getToken()
                     localStorage.setItem('token', 'testetoken');
 
                     // Caso consiga o token, guarda-o e redireciona para usuarios
@@ -254,19 +267,15 @@
                     }
                 },
                 getToken() {
-                    this.$http.post(ENDPOINT_LOGIN, {login: this.input.login, senha: this.input.senha})
-                        .then(
-                            function (response) {
-                                localStorage.setItem('token', response.body.token);
-                            }, 
-                            function (error) {
-                                console.log(error);
-                                localStorage.removeItem('token');
-                            }
-                        )
-                        .finally(function () {
+                    axios.post(ENDPOINT_LOGIN, {login: this.input.login, senha: this.input.senha})
+                        .then(function (response) {
+                            localStorage.setItem('token', response.body.token)
+                        })
+                        .catch(function (error) {
+                            console.log(error)
+                            localStorage.removeItem('token')
                         }
-                    );
+                    )
                 }
             }
         })
@@ -374,21 +383,6 @@
                 }
             },
             methods : {
-                getUsuarios() {
-                    this.$http.get(ENDPOINT_LISTAR_USUARIOS)
-                        .then(
-                            function (response) {
-                                this.usuarios = response.body;
-                            }, 
-                            function (error) {
-                                console.log(error);
-                            }
-                        )
-                        .finally(function () {
-                        }
-                    );
-                },
-
                 editItem (item) {
                     this.editedIndex = this.usuarios.indexOf(item)
                     this.editedItem = Object.assign({}, item)
@@ -398,23 +392,21 @@
                 deleteItem (item) {
                     const index = this.usuarios.indexOf(item)
                     if(confirm('Deseja realmente excluir este item?')){
-                        this.$http.delete(ENDPOINT_CRUD_USUARIO, JSON.stringify(this.editedItem))
-                            .then(
-                                function (response) {
-                                    if(response.body){
-                                        this.usuarios.splice(index, 1)
-                                    }
-                                    else {
-                                        alert('Houve um erro ao salvar os dados')
-                                    }
-                                }, 
-                                function (error) {
-                                    console.log(error)
-                                    alert('Houve um erro ao se conectar ao servidor')
-                                    
+                        axios.delete(ENDPOINT_CRUD_USUARIO, JSON.stringify(this.editedItem))
+                            .then(function (response) {
+                                if(response.body){
+                                    this.usuarios.splice(index, 1)
                                 }
-                            )
-                            .finally(function () {
+                                else {
+                                    alert('Houve um erro ao salvar os dados')
+                                }
+                            })
+                            .catch(function (error) {
+                                console.log(error)
+                                alert('Houve um erro ao se conectar ao servidor')
+                                    
+                            })
+                            .then(function () {
                                 this.close()
                             }
                         );
@@ -433,54 +425,49 @@
                 save () {
                     if (this.$refs.form.validate()) {
                         if (this.editedIndex > -1) {
-                            this.$http.put(ENDPOINT_CRUD_USUARIO, JSON.stringify(this.editedItem))
-                                .then(
-                                    function (response) {
-                                        if(response.body){
-                                            Object.assign(this.usuarios[this.editedIndex], this.editedItem);
-                                        }
-                                        else {
-                                            alert('Houve um erro ao salvar os dados')
-                                        }
-                                    }, 
-                                    function (error) {
-                                        console.log(error)
-                                        alert('Houve um erro ao se conectar ao servidor')
-                                        
+                            axios.put(ENDPOINT_CRUD_USUARIO, JSON.stringify(this.editedItem))
+                                .then(function (response) {
+                                    if(response.body){
+                                        Object.assign(this.usuarios[this.editedIndex], this.editedItem);
                                     }
-                                )
-                                .finally(function () {
+                                    else {
+                                        alert('Houve um erro ao salvar os dados')
+                                    }
+                                })
+                                .catch(function (error) {
+                                    console.log(error)
+                                    alert('Houve um erro ao se conectar ao servidor')
+                                })
+                                .then(function () {
                                     this.close()
                                 }
                             );
                         } 
                         else {
-                            this.$http.post(ENDPOINT_CRUD_USUARIO, JSON.stringify(this.editedItem))
-                                .then(
-                                    function (response) {
-                                        if(response.body){
-                                            this.usuarios.push(response.body)
-                                        }
-                                        else {
-                                            alert('Houve um erro ao salvar os dados')
-                                        }
-                                    }, 
-                                    function (error) {
-                                        console.log(error)
-                                        alert('Houve um erro ao se conectar ao servidor')
-                                        
+                            axios.post(ENDPOINT_CRUD_USUARIO, JSON.stringify(this.editedItem))
+                                .then(function (response) {
+                                    if(response.body){
+                                        this.usuarios.push(response.body)
                                     }
-                                )
-                                .finally(function () {
+                                    else {
+                                        alert('Houve um erro ao salvar os dados')
+                                    }
+                                })
+                                .catch(function (error) {
+                                    console.log(error)
+                                    alert('Houve um erro ao se conectar ao servidor')
+                                    
+                                })
+                                .then(function () {
                                     this.close()
                                 }
                             );
                         }
                     }
+                },
+                povoarTabela(usuarios){
+                    this.usuarios = usuarios
                 }
-            },
-            created() {
-                this.getUsuarios();
             },
             computed: {
                 formTitle () {
@@ -492,8 +479,10 @@
                     val || this.close()
                 }
             },
-            beforeEnter: (to, from, next) => {
-                alert('enter')
+            beforeRouteEnter (to, from, next) {
+                getUsuarios(function(usuarios) {
+                    next(vm => vm.povoarTabela(usuarios))
+                })
             }
         })
 
@@ -543,18 +532,19 @@
                 // Concede acesso
                 next()
             } 
-            else {
+            else 
+            {
                 // Se o token existe no localStorage
                 if(localStorage.getItem('token')) {
-
-                    // Verifica se o token é válido
 
                     // Concede acesso
                     next()
                 }
-
-                // Nega o acesso
-                next(false)
+                else
+                {
+                    // Nega o acesso
+                    next({path: '/login'})
+                }
             }
         })
 
