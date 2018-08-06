@@ -38,7 +38,7 @@
         </v-app>
     </template>
 
-    <template id="backend">
+    <!--<template id="backend">
         <v-app id="inspire">
             <v-navigation-drawer :clipped="$vuetify.breakpoint.lgAndUp" v-model="drawer" fixed app >
                 <v-list dense>
@@ -114,7 +114,7 @@
                 </v-container>
             </v-content>
         </v-app>
-    </template>
+    </template>-->
 
     <template id="usuarios">
         <backend>
@@ -234,7 +234,6 @@
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script>
 
-
         const ENDPOINT_LOGIN = 'http://agnc.kinghost.net/api-controle-estoque/public/api/usuario/login';
         const ENDPOINT_LISTAR_USUARIOS = 'http://agnc.kinghost.net/api-controle-estoque/public/api/usuarios';
         const ENDPOINT_CRUD_USUARIO = 'http://agnc.kinghost.net/api-controle-estoque/public/api/usuario';
@@ -274,7 +273,7 @@
             }
         })
 
-        var Backend = Vue.component('backend', {
+        /*var Backend = Vue.component('backend', {
             template: '#backend',
             data () {
                 return {
@@ -304,7 +303,7 @@
                     this.$router.replace({ path: "/login" });
                 }
             }
-        })
+        })*/
 
         var Usuarios = Vue.component('usuarios', {
             template: '#usuarios',
