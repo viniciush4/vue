@@ -28,7 +28,7 @@
                         </v-card-text>
                         <v-card-actions>
                             <v-spacer></v-spacer>
-                            <v-btn color="primary" v-on:click="login()" >Login</v-btn>
+                            <v-btn color="primary" @click="login()" :disabled="loading" :loading="loading">Login</v-btn>
                         </v-card-actions>
                         </v-card>
                     </v-flex>
@@ -132,7 +132,7 @@
                         
                                 <v-card-text>
                                     <v-container grid-list-md>
-                                        <v-form ref="form" v-model="valid" lazy-validation>
+                                        <v-form ref="form_usuario" v-model="valid" lazy-validation>
                                             <v-layout row wrap>
                                                 <v-flex xs12>
                                                     <v-text-field prepend-icon="person" v-model="editedItem.nome" label="Nome" :rules="rules.nome"></v-text-field>
@@ -150,7 +150,7 @@
                                             </v-layout>
                                             <v-layout row wrap>
                                                 <v-flex xs12>
-                                                    <v-select v-model="editedItem.tipo" :items="tiposUsuarios" label="Tipo" :rules="rules.tipo"></v-select>
+                                                    <v-select auto v-model="editedItem.tipo" :items="tiposUsuarios" label="Tipo" :rules="rules.tipo"></v-select>
                                                 </v-flex>
                                             </v-layout>
                                         </v-form>
@@ -190,7 +190,53 @@
     <template id="categorias-produtos">
         <backend>
             <template slot="content">
-                <div>Categorias de Produtos</div>
+                <v-card width="100%">
+                    <v-toolbar flat color="white">
+                        <v-toolbar-title>Categorias de Produtos</v-toolbar-title>
+                        <v-spacer></v-spacer>
+                        <v-dialog v-model="dialog" max-width="500px">
+                            <v-btn slot="activator" color="primary" dark class="mb-2">Nova Categoria</v-btn>
+                            <v-card>
+                                <v-card-title>
+                                    <span class="headline">{{ formTitle }}</span>
+                                </v-card-title>
+                        
+                                <v-card-text>
+                                    <v-container grid-list-md>
+                                        <v-form ref="form_categoria_produtos" v-model="valid" lazy-validation>
+                                            <v-layout row wrap>
+                                                <v-flex xs12>
+                                                    <v-text-field v-model="editedItem.nome" label="Nome" :rules="rules.nome"></v-text-field>
+                                                </v-flex>
+                                            </v-layout>
+                                        </v-form>
+                                    </v-container>
+                                </v-card-text>
+                        
+                                <v-card-actions>
+                                    <v-spacer></v-spacer>
+                                    <v-btn color="blue darken-1" flat @click.native="close">Cancelar</v-btn>
+                                    <v-btn color="blue darken-1" flat @click.native="save" :disabled="!valid">Salvar</v-btn>
+                                </v-card-actions>
+                            </v-card>
+                        </v-dialog>
+                    </v-toolbar>
+                    <v-toolbar flat color="white">
+                        <v-text-field v-model="search" append-icon="search" label="Localizar" single-line hide-details></v-text-field>
+                    </v-toolbar>
+                    <v-data-table :headers="headers" :items="categoriasProdutos" hide-actions class="elevation-1" :search="search" >
+                        <template slot="items" slot-scope="props">
+                            <td>{{ props.item.nome }}</td>
+                            <td class="justify-end layout">
+                                <v-icon small class="mr-2" @click="editItem(props.item)" >edit</v-icon>
+                                <v-icon small @click="deleteItem(props.item)">delete</v-icon>
+                            </td>
+                        </template>
+                        <template slot="no-data">
+                            Nenhum dado disponível
+                        </template>
+                    </v-data-table>
+                </v-card>
             </template>
         </backend>
     </template>
@@ -198,7 +244,65 @@
     <template id="produtos">
         <backend>
             <template slot="content">
-                <div>Produtos</div>
+                <v-card width="100%">
+                    <v-toolbar flat color="white">
+                        <v-toolbar-title>Produtos</v-toolbar-title>
+                        <v-spacer></v-spacer>
+                        <v-dialog v-model="dialog" max-width="500px">
+                            <v-btn slot="activator" color="primary" dark class="mb-2">Novo Produto</v-btn>
+                            <v-card>
+                                <v-card-title>
+                                    <span class="headline">{{ formTitle }}</span>
+                                </v-card-title>
+                        
+                                <v-card-text>
+                                    <v-container grid-list-md>
+                                        <v-form ref="form_produto" v-model="valid" lazy-validation>
+                                            <v-layout row wrap>
+                                                <v-flex xs12>
+                                                    <v-text-field v-model="editedItem.nome" label="Nome" :rules="rules.nome"></v-text-field>
+                                                </v-flex>
+                                            </v-layout>
+                                            <v-layout row wrap>
+                                                <v-flex xs12>
+                                                    <v-text-field v-model="editedItem.descricao" label="Descrição" :rules="rules.descricao"></v-text-field>
+                                                </v-flex>
+                                            </v-layout>
+                                            <v-layout row wrap>
+                                                <v-flex xs12>
+                                                    <v-select auto single-line v-model="editedItem.categoria_id" :items="categoriasProdutos" item-text="nome" item-value="id" label="Categoria" :rules="rules.categoria_id"></v-select>
+                                                </v-flex>
+                                            </v-layout>
+                                        </v-form>
+                                    </v-container>
+                                </v-card-text>
+                        
+                                <v-card-actions>
+                                    <v-spacer></v-spacer>
+                                    <v-btn color="blue darken-1" flat @click.native="close">Cancelar</v-btn>
+                                    <v-btn color="blue darken-1" flat @click.native="save" :disabled="!valid">Salvar</v-btn>
+                                </v-card-actions>
+                            </v-card>
+                        </v-dialog>
+                    </v-toolbar>
+                    <v-toolbar flat color="white">
+                        <v-text-field v-model="search" append-icon="search" label="Localizar" single-line hide-details></v-text-field>
+                    </v-toolbar>
+                    <v-data-table :headers="headers" :items="produtos" hide-actions class="elevation-1" :search="search" >
+                        <template slot="items" slot-scope="props">
+                            <td>{{ props.item.nome }}</td>
+                            <td class="text-xs-right">{{ props.item.descricao }}</td>
+                            <td class="text-xs-right">{{ categoriasProdutos.find(function(element,index,array){ return (element.id == props.item.categoria_id )}).nome }}</td>
+                            <td class="justify-end layout">
+                                <v-icon small class="mr-2" @click="editItem(props.item)" >edit</v-icon>
+                                <v-icon small @click="deleteItem(props.item)">delete</v-icon>
+                            </td>
+                        </template>
+                        <template slot="no-data">
+                            Nenhum dado disponível
+                        </template>
+                    </v-data-table>
+                </v-card>
             </template>
         </backend>
     </template>
@@ -206,7 +310,99 @@
     <template id="estoque">
         <backend>
             <template slot="content">
-                <div>Estoque</div>
+                <v-card width="100%">
+                    <v-toolbar flat color="white">
+                        <v-toolbar-title>Estoque</v-toolbar-title>
+                        <v-spacer></v-spacer>
+                        <v-dialog v-model="dialog" max-width="500px">
+                            <v-btn slot="activator" color="primary" dark class="mb-2">Novo Registro</v-btn>
+                            <v-card>
+                                <v-card-title>
+                                    <span class="headline">{{ formTitle }}</span>
+                                </v-card-title>
+                        
+                                <v-card-text>
+                                    <v-container grid-list-md>
+                                        <v-form ref="form_estoque" v-model="valid" lazy-validation>
+                                            <!-- <v-layout row wrap>
+                                                <v-flex xs12>
+                                                    <v-menu
+                                                        ref="datepicker_estoque"
+                                                        :close-on-content-click="false"
+                                                        v-model="datepicker_estoque"
+                                                        :nudge-right="40"
+                                                        :return-value.sync="editedItem.data"
+                                                        lazy
+                                                        transition="scale-transition"
+                                                        offset-y
+                                                        full-width
+                                                        min-width="290px"
+                                                    >   
+                                                        <v-text-field
+                                                            slot="activator"
+                                                            :value="computedDateFormatted"
+                                                            label="Data"
+                                                            prepend-icon="event"
+                                                            :rules="rules.data"
+                                                            readonly
+                                                        ></v-text-field>
+                                                        <v-date-picker v-model="editedItem.data" @input="$refs.datepicker_estoque.save(editedItem.data)" locale="pt-br"></v-date-picker>
+                                                
+                                                    </v-menu>
+                                                </v-flex>
+                                            </v-layout> -->
+                                            <v-layout row wrap>
+                                                <v-flex xs12>
+                                                    <v-select auto v-model="editedItem.tipo" :items="tiposEstoque" label="Tipo" :rules="rules.tipo"></v-select>
+                                                </v-flex>
+                                            </v-layout>
+                                            <v-layout row wrap>
+                                                <v-flex xs12>
+                                                    <v-select auto single-line v-model="editedItem.produto_id" :items="produtos" item-text="nome" item-value="id" label="Produto" :rules="rules.produto_id"></v-select>
+                                                </v-flex>
+                                            </v-layout>
+                                            <v-layout row wrap>
+                                                <v-flex xs12>
+                                                    <v-text-field v-model="editedItem.quantidade" label="Quantidade" :rules="rules.quantidade"></v-text-field>
+                                                </v-flex>
+                                            </v-layout>
+                                            <!--<v-layout row wrap>
+                                                <v-flex xs12>
+                                                    <v-text-field v-model="editedItem.observacoes" label="Observações" :rules="rules.observacoes"></v-text-field>
+                                                </v-flex>
+                                            </v-layout>-->
+                                        </v-form>
+                                    </v-container>
+                                </v-card-text>
+                        
+                                <v-card-actions>
+                                    <v-spacer></v-spacer>
+                                    <v-btn color="blue darken-1" flat @click.native="close">Cancelar</v-btn>
+                                    <v-btn color="blue darken-1" flat @click.native="save" :disabled="!valid">Salvar</v-btn>
+                                </v-card-actions>
+                            </v-card>
+                        </v-dialog>
+                    </v-toolbar>
+                    <v-toolbar flat color="white">
+                        <v-text-field v-model="search" append-icon="search" label="Localizar" single-line hide-details></v-text-field>
+                    </v-toolbar>
+                    <v-data-table :headers="headers" :items="estoques" hide-actions class="elevation-1" :search="search" >
+                        <template slot="items" slot-scope="props">
+                            <td>{{ produtos.find(function(element,index,array){ return (element.id == props.item.produto_id )}).nome }}</td>
+                            <td class="text-xs-right">{{ props.item.tipo }}</td>
+                            <td class="text-xs-right">{{ props.item.quantidade }}</td>
+                            <td class="text-xs-right">{{ formatDate(props.item.data) }}</td>
+                            <td class="text-xs-right">{{ usuarios.find(function(element,index,array){ return (element.id == props.item.usuario_id )}).nome }}</td>
+                            <td class="justify-end layout">
+                                <v-icon small class="mr-2" @click="editItem(props.item)" >edit</v-icon>
+                                <v-icon small @click="deleteItem(props.item)">delete</v-icon>
+                            </td>
+                        </template>
+                        <template slot="no-data">
+                            Nenhum dado disponível
+                        </template>
+                    </v-data-table>
+                </v-card>
             </template>
         </backend>
     </template>
@@ -234,16 +430,20 @@
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script>
 
-
         const ENDPOINT_LOGIN = 'http://agnc.kinghost.net/api-controle-estoque/public/api/usuario/login';
         const ENDPOINT_LISTAR_USUARIOS = 'http://agnc.kinghost.net/api-controle-estoque/public/api/usuarios';
         const ENDPOINT_CRUD_USUARIO = 'http://agnc.kinghost.net/api-controle-estoque/public/api/usuario';
-        const ENDPOINT_LISTAR_CATEGORIAS = 'http://agnc.kinghost.net/api-controle-estoque/public/api/categorias';
-        const ENDPOINT_CRUD_CATEGORIA = 'http://agnc.kinghost.net/api-controle-estoque/public/api/categoria';
+        const ENDPOINT_LISTAR_CATEGORIAS_PRODUTOS = 'http://agnc.kinghost.net/api-controle-estoque/public/api/categorias';
+        const ENDPOINT_CRUD_CATEGORIA_PRODUTOS = 'http://agnc.kinghost.net/api-controle-estoque/public/api/categoria';
+        const ENDPOINT_LISTAR_PRODUTOS = 'http://agnc.kinghost.net/api-controle-estoque/public/api/produtos';
+        const ENDPOINT_CRUD_PRODUTO = 'http://agnc.kinghost.net/api-controle-estoque/public/api/produto';
+        const ENDPOINT_LISTAR_ESTOQUES = 'http://agnc.kinghost.net/api-controle-estoque/public/api/estoques';
+        const ENDPOINT_CRUD_ESTOQUE = 'http://agnc.kinghost.net/api-controle-estoque/public/api/estoque';
 
         var Login = Vue.component('login', {
             template: '#login',
             data: () => ({
+                loading: false,
                 input: {
                     login: "",
                     senha: ""
@@ -251,25 +451,31 @@
             }),
             methods: {
                 login() {
-                    // Realiza chamada ao backend para conseguir token
-                    //this.getToken()
-                    localStorage.setItem('token', 'testetoken');
-
-                    // Caso consiga o token, guarda-o e redireciona para usuarios
-                    if(localStorage.getItem('token') != ""){
-                        this.$router.replace({ path: "/usuarios" });
-                    }
-                },
-                getToken() {
+                    vm = this
+                    this.loading = true
                     axios.post(ENDPOINT_LOGIN, {login: this.input.login, senha: this.input.senha})
-                        .then(function (response) {
-                            localStorage.setItem('token', response.body.token)
+                        .then(function (response) 
+                        {    
+                            if(response.status == 200)
+                            {
+                                localStorage.setItem('token', response.data.token)
+                                vm.$router.push({ path: "/usuarios" })
+                            }
+                            else
+                            {
+                                console.log(response.status + " - " + response.statusText)
+                                alert('Houve um erro ao realizar a operação')
+                            }
                         })
-                        .catch(function (error) {
-                            console.log(error)
+                        .catch(function (error) 
+                        {
                             localStorage.removeItem('token')
-                        }
-                    )
+                            console.log(error)
+                            alert('Houve um erro ao se conectar ao servidor')
+                        })
+                        .then(function(){
+                            vm.loading = false;
+                        })
                 }
             }
         })
@@ -283,7 +489,7 @@
                     items: [
                         { icon: 'group', text: 'Usuários', action: '/usuarios' },
                         { icon: 'category', text: 'Categoria de Produtos', action: '/categorias-produtos' },
-                        { icon: 'change_history', text: 'Produtos', action: '/produtos' },
+                        { icon: 'widgets', text: 'Produtos', action: '/produtos' },
                         { icon: 'assessment', text: 'Estoque', action: '/estoque' },
                         {
                             icon: 'keyboard_arrow_up',
@@ -319,6 +525,9 @@
                         login: [
                             v => !!v || 'O login não pode ficar em branco'
                         ],
+                        senha: [
+                            v => !!v || 'A senha não pode ficar em branco'
+                        ],
                         tipo: [
                             v => !!v || 'O tipo não pode ficar em branco'
                         ]
@@ -333,22 +542,21 @@
                         { 
                             text: 'Login', 
                             value: 'login',
-                            class : 'text-xs-right'
+                            align: 'right',
                         },
                         { 
                             text: 'Tipo', 
                             value: 'tipo',
-                            class : 'text-xs-right'
+                            align: 'right',
                         },
                         { 
                             text: 'Opções', 
                             value: 'id',
-                            class : 'text-xs-right',
+                            align: 'right',
                             sortable: false 
                         }
                     ],
                     usuarios: [],
-                    listaUsuarios: [],
                     tiposUsuarios: [
                         {
                             text: 'Administrador',
@@ -422,13 +630,13 @@
                     setTimeout(() => {
                         this.editedItem = Object.assign({}, this.defaultItem)
                         this.editedIndex = -1
-                        this.$refs.form.reset()
+                        this.$refs.form_usuario.reset()
                     }, 300)
                 },
 
                 save () 
                 {
-                    if (this.$refs.form.validate()) 
+                    if (this.$refs.form_usuario.validate()) 
                     {
                         vm = this;
                         if (this.editedIndex > -1) 
@@ -461,7 +669,7 @@
                             axios.post(ENDPOINT_CRUD_USUARIO, this.editedItem)
                                 .then(function (response) 
                                 {
-                                    if(response.status == 200)
+                                    if(response.status == 201)
                                     {
                                         vm.usuarios.push(response.data)
                                     }
@@ -518,15 +726,612 @@
         })
 
         var CategoriasProdutos = Vue.component('categorias-produtos', {
-            template: '#categorias-produtos'
+            template: '#categorias-produtos',
+            data () {
+                return {
+                    valid: false,
+                    dialog: false,
+                    rules: {
+                        nome: [
+                            v => !!v || 'O nome não pode ficar em branco'
+                        ]
+                    },
+                    headers: [
+                        {
+                            text: 'Nome', 
+                            value: 'nome',
+                            align: 'left', 
+                            sortable: true
+                        },
+                        { 
+                            text: 'Opções', 
+                            value: 'id',
+                            align: 'right',
+                            sortable: false 
+                        }
+                    ],
+                    categoriasProdutos: [],
+                    search: '',
+                    editedIndex: -1,
+                    editedItem: {
+                        id: '',
+                        nome: '',
+                    },
+                    defaultItem: {
+                        id: '',
+                        nome: '',
+                    }
+                }
+            },
+            methods : {
+                editItem (item) {
+                    this.editedIndex = this.categoriasProdutos.indexOf(item)
+                    this.editedItem = Object.assign({}, item)
+                    this.dialog = true
+                },
+
+                deleteItem (item) 
+                {
+                    vm = this;
+                    const index = this.categoriasProdutos.indexOf(item)
+                    const id = this.categoriasProdutos[index].id
+                    if(confirm('Deseja realmente excluir este item?'))
+                    {
+                        axios.delete(ENDPOINT_CRUD_CATEGORIA_PRODUTOS+"/"+id)
+                            .then(function (response) 
+                            {
+                                if(response.status == 200)
+                                {
+                                    vm.categoriasProdutos.splice(index, 1)
+                                }
+                                else 
+                                {
+                                    console.log(response.status + " - " + response.statusText)
+                                    alert('Houve um erro ao realizar a operação')
+                                }
+                            })
+                            .catch(function (error) 
+                            {
+                                console.log(error)
+                                alert('Houve um erro ao se conectar ao servidor')
+                                    
+                            })
+                            .then(function () {
+                                vm.close()
+                            }
+                        );
+                    }
+                },
+
+                close () {
+                    this.dialog = false
+                    setTimeout(() => {
+                        this.editedItem = Object.assign({}, this.defaultItem)
+                        this.editedIndex = -1
+                        this.$refs.form_categoria_produtos.reset()
+                    }, 300)
+                },
+
+                save () 
+                {
+                    if (this.$refs.form_categoria_produtos.validate()) 
+                    {
+                        vm = this;
+                        if (this.editedIndex > -1) 
+                        {
+                            axios.put(ENDPOINT_CRUD_CATEGORIA_PRODUTOS+"/"+this.editedItem.id, this.editedItem)
+                                .then(function (response) 
+                                {
+                                    if(response.status == 200)
+                                    {
+                                        Object.assign(vm.categoriasProdutos[vm.editedIndex], vm.editedItem);
+                                    }
+                                    else 
+                                    {
+                                        console.log(response.status + " - " + response.statusText)
+                                        alert('Houve um erro ao realizar a operação')
+                                    }
+                                })
+                                .catch(function (error) 
+                                {
+                                    console.log(error)
+                                    alert('Houve um erro ao se conectar ao servidor')
+                                })
+                                .then(function () {
+                                    vm.close()
+                                }
+                            );
+                        } 
+                        else 
+                        {
+                            axios.post(ENDPOINT_CRUD_CATEGORIA_PRODUTOS, this.editedItem)
+                                .then(function (response) 
+                                {
+                                    if(response.status == 201)
+                                    {
+                                        vm.categoriasProdutos.push(response.data)
+                                    }
+                                    else 
+                                    {
+                                        console.log(response.status + " - " + response.statusText)
+                                        alert('Houve um erro ao realizar a operação')
+                                    }
+                                })
+                                .catch(function (error) 
+                                {
+                                    console.log(error)
+                                    alert('Houve um erro ao se conectar ao servidor')   
+                                })
+                                .then(function () 
+                                {
+                                    vm.close()
+                                }
+                            );
+                        }
+                    }
+                },
+            },
+            computed: {
+                formTitle () {
+                    return this.editedIndex === -1 ? 'Nova Categoria' : 'Editar Categoria'
+                }
+            },
+            watch: {
+                dialog (val) {
+                    val || this.close()
+                }
+            },
+            beforeRouteEnter (to, from, next) 
+            {
+                axios.get(ENDPOINT_LISTAR_CATEGORIAS_PRODUTOS)
+                    .then(function (response) 
+                    {
+                        if(response.status == 200)
+                        {
+                            next(function(vm) { vm.categoriasProdutos = response.data })
+                        }
+                        else
+                        {
+                            next(false)
+                        }
+                    })
+                    .catch(function (error) 
+                    {
+                        console.log(error)
+                        next(false)
+                    });
+            }
         })
 
         var Produtos = Vue.component('produtos', {
-            template: '#produtos'
+            template: '#produtos',
+            data () {
+                return {
+                    valid: false,
+                    dialog: false,
+                    rules: {
+                        nome: [
+                            v => !!v || 'O nome não pode ficar em branco'
+                        ],
+                        descricao: [
+                            v => !!v || 'A descrição não pode ficar em branco'
+                        ],
+                        categoria_id: [
+                            v => !!v || 'A categoria não pode ficar em branco'
+                        ]
+                    },
+                    headers: [
+                        {
+                            text: 'Nome', 
+                            value: 'nome',
+                            align: 'left', 
+                            sortable: true
+                        },
+                        {
+                            text: 'Descrição', 
+                            value: 'descricao',
+                            align: 'right', 
+                            sortable: true
+                        },
+                        {
+                            text: 'Categoria', 
+                            value: 'categoria_id',
+                            align: 'right', 
+                            sortable: false
+                        },
+                        { 
+                            text: 'Opções', 
+                            value: 'id',
+                            align: 'right',
+                            sortable: false 
+                        }
+                    ],
+                    produtos: [],
+                    categoriasProdutos: [],
+                    search: '',
+                    editedIndex: -1,
+                    editedItem: {
+                        id: '',
+                        nome: '',
+                        descricao: '',
+                        categoria_id: ''
+                    },
+                    defaultItem: {
+                        id: '',
+                        nome: '',
+                        descricao: '',
+                        categoria_id: ''
+                    }
+                }
+            },
+            methods : {
+                editItem (item) {
+                    this.editedIndex = this.produtos.indexOf(item)
+                    this.editedItem = Object.assign({}, item)
+                    this.dialog = true
+                },
+
+                deleteItem (item) 
+                {
+                    vm = this;
+                    const index = this.produtos.indexOf(item)
+                    const id = this.produtos[index].id
+                    if(confirm('Deseja realmente excluir este item?'))
+                    {
+                        axios.delete(ENDPOINT_CRUD_PRODUTO+"/"+id)
+                            .then(function (response) 
+                            {
+                                if(response.status == 200)
+                                {
+                                    vm.produtos.splice(index, 1)
+                                }
+                                else 
+                                {
+                                    console.log(response.status + " - " + response.statusText)
+                                    alert('Houve um erro ao realizar a operação')
+                                }
+                            })
+                            .catch(function (error) 
+                            {
+                                console.log(error)
+                                alert('Houve um erro ao se conectar ao servidor')
+                                    
+                            })
+                            .then(function () {
+                                vm.close()
+                            }
+                        );
+                    }
+                },
+
+                close () {
+                    this.dialog = false
+                    setTimeout(() => {
+                        this.editedItem = Object.assign({}, this.defaultItem)
+                        this.editedIndex = -1
+                        this.$refs.form_produto.reset()
+                    }, 300)
+                },
+
+                save () 
+                {
+                    if (this.$refs.form_produto.validate()) 
+                    {
+                        vm = this;
+                        if (this.editedIndex > -1) 
+                        {
+                            axios.put(ENDPOINT_CRUD_PRODUTO+"/"+this.editedItem.id, this.editedItem)
+                                .then(function (response) 
+                                {
+                                    if(response.status == 200)
+                                    {
+                                        Object.assign(vm.produtos[vm.editedIndex], vm.editedItem);
+                                    }
+                                    else 
+                                    {
+                                        console.log(response.status + " - " + response.statusText)
+                                        alert('Houve um erro ao realizar a operação')
+                                    }
+                                })
+                                .catch(function (error) 
+                                {
+                                    console.log(error)
+                                    alert('Houve um erro ao se conectar ao servidor')
+                                })
+                                .then(function () {
+                                    vm.close()
+                                }
+                            );
+                        } 
+                        else 
+                        {
+                            axios.post(ENDPOINT_CRUD_PRODUTO, this.editedItem)
+                                .then(function (response) 
+                                {
+                                    if(response.status == 201)
+                                    {
+                                        vm.produtos.push(response.data)
+                                    }
+                                    else 
+                                    {
+                                        console.log(response.status + " - " + response.statusText)
+                                        alert('Houve um erro ao realizar a operação')
+                                    }
+                                })
+                                .catch(function (error) 
+                                {
+                                    console.log(error)
+                                    alert('Houve um erro ao se conectar ao servidor')   
+                                })
+                                .then(function () 
+                                {
+                                    vm.close()
+                                }
+                            );
+                        }
+                    }
+                },
+            },
+            computed: {
+                formTitle () {
+                    return this.editedIndex === -1 ? 'Novo Produto' : 'Editar Produto'
+                }
+            },
+            watch: {
+                dialog (val) {
+                    val || this.close()
+                }
+            },
+            beforeRouteEnter (to, from, next) 
+            {
+                axios.all([axios.get(ENDPOINT_LISTAR_PRODUTOS), axios.get(ENDPOINT_LISTAR_CATEGORIAS_PRODUTOS)])
+                    .then(axios.spread(function (produtos, categorias) {
+                        next(function(vm) {
+                            vm.produtos = produtos.data
+                            vm.categoriasProdutos = categorias.data
+                        })
+                    }));
+            }
         })
 
         var Estoque = Vue.component('estoque', {
-            template: '#estoque'
+            template: '#estoque',
+            data () {
+                return {
+                    valid: false,
+                    dialog: false,
+                    //datepicker_estoque: false,
+                    rules: {
+                        data: [
+                            v => !!v || 'A data não pode ficar em branco'
+                        ],
+                        hora: [
+                            v => !!v || 'A hora não pode ficar em branco'
+                        ],
+                        tipo: [
+                            v => !!v || 'O tipo não pode ficar em branco'
+                        ],
+                        produto_id: [
+                            v => !!v || 'O nome do produto não pode ficar em branco'
+                        ],
+                        quantidade: [
+                            v => !!v || 'A quantidade não pode ficar em branco',
+                            v => /. ([0-9]*[.])?[0-9]+/.test(v) || 'A quantidade deve ser um número'
+                        ]
+                    },
+                    headers: [
+                        {
+                            text: 'Produto', 
+                            value: 'produto_id',
+                            align: 'left', 
+                            sortable: true
+                        },
+                        {
+                            text: 'Tipo', 
+                            value: 'tipo',
+                            align: 'right', 
+                            sortable: true
+                        },                        
+                        {
+                            text: 'Quantidade', 
+                            value: 'quantidade',
+                            align: 'right', 
+                            sortable: true
+                        },
+                        {
+                            text: 'Data', 
+                            value: 'data',
+                            align: 'right', 
+                            sortable: true
+                        },
+                        {
+                            text: 'Responsável', 
+                            value: 'responsavel',
+                            align: 'right', 
+                            sortable: true
+                        },
+                        { 
+                            text: 'Opções', 
+                            value: 'id',
+                            align: 'right',
+                            sortable: false 
+                        }
+                    ],
+                    estoques: [],
+                    produtos: [],
+                    usuarios: [],
+                    tiposEstoque: [
+                        {
+                            text: 'Entrada',
+                            value: 'entrada'
+                        },
+                        {
+                            text: 'Saída',
+                            value: 'saida'
+                        },
+                    ],
+                    search: '',
+                    editedIndex: -1,
+                    editedItem: {
+                        id: '',
+                        usuario_id: 1,
+                        //data: '',
+                        tipo: '',
+                        produto_id: '',
+                        quantidade: '',
+                        //observacoes: '',
+                        token: localStorage.getItem('token')
+                    },
+                    defaultItem: {
+                        id: '',
+                        usuario_id: 1,
+                        //data: '',
+                        tipo: '',
+                        produto_id: '',
+                        quantidade: '',
+                        //observacoes: '',
+                        token: localStorage.getItem('token')
+                    }
+                }
+            },
+            methods : {
+                editItem (item) {
+                    this.editedIndex = this.estoques.indexOf(item)
+                    this.editedItem = Object.assign({}, item)
+                    this.dialog = true
+                },
+
+                deleteItem (item) 
+                {
+                    vm = this;
+                    const index = this.estoques.indexOf(item)
+                    const id = this.estoques[index].id
+                    if(confirm('Deseja realmente excluir este item?'))
+                    {
+                        axios.delete(ENDPOINT_CRUD_ESTOQUE+"/"+id)
+                            .then(function (response) 
+                            {
+                                if(response.status == 200)
+                                {
+                                    vm.estoques.splice(index, 1)
+                                }
+                                else 
+                                {
+                                    console.log(response.status + " - " + response.statusText)
+                                    alert('Houve um erro ao realizar a operação')
+                                }
+                            })
+                            .catch(function (error) 
+                            {
+                                console.log(error)
+                                alert('Houve um erro ao se conectar ao servidor')
+                                    
+                            })
+                            .then(function () {
+                                vm.close()
+                            }
+                        );
+                    }
+                },
+
+                close () {
+                    this.dialog = false
+                    setTimeout(() => {
+                        this.editedItem = Object.assign({}, this.defaultItem)
+                        this.editedIndex = -1
+                        this.$refs.form_estoque.reset()
+                    }, 300)
+                },
+
+                save () 
+                {
+                    if (this.$refs.form_estoque.validate()) 
+                    {
+                        vm = this;
+                        if (this.editedIndex > -1) 
+                        {
+                            axios.put(ENDPOINT_CRUD_ESTOQUE+"/"+this.editedItem.id, this.editedItem)
+                                .then(function (response) 
+                                {
+                                    if(response.status == 200)
+                                    {
+                                        Object.assign(vm.estoques[vm.editedIndex], vm.editedItem);
+                                    }
+                                    else 
+                                    {
+                                        console.log(response.status + " - " + response.statusText)
+                                        alert('Houve um erro ao realizar a operação')
+                                    }
+                                })
+                                .catch(function (error) 
+                                {
+                                    console.log(error)
+                                    alert('Houve um erro ao se conectar ao servidor')
+                                })
+                                .then(function () {
+                                    vm.close()
+                                }
+                            );
+                        } 
+                        else 
+                        {
+                            axios.post(ENDPOINT_CRUD_ESTOQUE, this.editedItem)
+                                .then(function (response) 
+                                {
+                                    if(response.status == 201)
+                                    {
+                                        vm.estoques.push(response.data)
+                                    }
+                                    else 
+                                    {
+                                        console.log(response.status + " - " + response.statusText)
+                                        alert('Houve um erro ao realizar a operação')
+                                    }
+                                })
+                                .catch(function (error) 
+                                {
+                                    console.log(error)
+                                    alert('Houve um erro ao se conectar ao servidor')   
+                                })
+                                .then(function () 
+                                {
+                                    vm.close()
+                                }
+                            );
+                        }
+                    }
+                },
+                // formatDate (date) {
+                //     if (!date) return null
+
+                //     const [year, month, day] = date.split('-')
+                //     return `${day}/${month}/${year}`
+                // }
+            },
+            computed: {
+                formTitle () {
+                    return this.editedIndex === -1 ? 'Novo Registro' : 'Editar Registro'
+                },
+                // computedDateFormatted () {
+                //     return this.formatDate(this.editedItem.data)
+                // }
+            },
+            watch: {
+                dialog (val) {
+                    val || this.close()
+                }
+            },
+            beforeRouteEnter (to, from, next) 
+            {
+                axios.all([axios.get(ENDPOINT_LISTAR_ESTOQUES), axios.get(ENDPOINT_LISTAR_PRODUTOS), axios.get(ENDPOINT_LISTAR_USUARIOS)])
+                    .then(axios.spread(function (estoques, produtos, usuarios) {
+                        next(function(vm) {
+                            vm.estoques = estoques.data
+                            vm.produtos = produtos.data
+                            vm.usuarios = usuarios.data
+                        })
+                    }));
+            }
         })
 
         var BalancoGeralEstoque = Vue.component('balanco-geral-estoque', {
