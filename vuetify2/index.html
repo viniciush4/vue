@@ -451,6 +451,8 @@
             }),
             methods: {
                 login() {
+                    // localStorage.setItem('token', 'hjjhkjhkjh')
+                    // vm.$router.push({ path: "/usuarios" })
                     vm = this
                     this.loading = true
                     axios.post(ENDPOINT_LOGIN, {login: this.input.login, senha: this.input.senha})
@@ -1116,7 +1118,7 @@
                         ],
                         quantidade: [
                             v => !!v || 'A quantidade não pode ficar em branco',
-                            v => /. ([0-9]*[.])?[0-9]+/.test(v) || 'A quantidade deve ser um número'
+                            //v => /. ([0-9]*[.])?[0-9]+/.test(v) || 'A quantidade deve ser um número'
                         ]
                     },
                     headers: [
@@ -1301,12 +1303,12 @@
                         }
                     }
                 },
-                // formatDate (date) {
-                //     if (!date) return null
+                formatDate (date) {
+                    if (!date) return null
 
-                //     const [year, month, day] = date.split('-')
-                //     return `${day}/${month}/${year}`
-                // }
+                    const [year, month, day] = date.split('-')
+                    return `${day}/${month}/${year}`
+                }
             },
             computed: {
                 formTitle () {
